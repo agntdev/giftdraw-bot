@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Set selection probability percentage"
+              "text": "Add me to a group, then an admin can set up gift draws there."
             }
           }
         ],

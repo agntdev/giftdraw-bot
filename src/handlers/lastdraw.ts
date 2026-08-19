@@ -1,15 +1,29 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { configOrReply, requireChatAdmin } from "../gift-admin.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
+const composer = new Composer<Ctx>();
 
-const composer = new Composer();
+async function showLastDraw(ctx: Ctx): Promise<void> {
+  const config = await configOrReply(ctx);
+  if (!config) return;
+  if (!config.last_winner_id) {
+    await ctx.reply("No gift draw yet — enable draws and I’ll announce the first winner here.");
+    return;
+  }
+  const winner = config.members.find((member) => member.id === config.last_winner_id);
+  await ctx.reply(winner ? `The latest winner was ${winner.username ? `@${winner.username}` : winner.name}.` : "I found the latest draw, but the winner is no longer in this chat.");
+}
 
 composer.command("lastdraw", async (ctx) => {
-  await ctx.reply("Show last winner information");
+  if (!(await requireChatAdmin(ctx))) return;
+  await showLastDraw(ctx);
+});
+
+composer.callbackQuery("gift:last", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  if (!(await requireChatAdmin(ctx))) return;
+  await showLastDraw(ctx);
 });
 
 export default composer;

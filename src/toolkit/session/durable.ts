@@ -144,6 +144,20 @@ export class ChatDO {
       }
     }
 
+    // Small, per-chat domain record used by feature handlers. It intentionally
+    // lives apart from the recyclable grammY session so records survive flow
+    // resets and restarts.
+    if (url.pathname === "/gift") {
+      if (request.method === "GET") {
+        const value = await this.state.storage.get<unknown>("gift");
+        return Response.json(value ?? {});
+      }
+      if (request.method === "PUT") {
+        await this.state.storage.put("gift", await request.json());
+        return new Response(null, { status: 204 });
+      }
+    }
+
     // Schedule a reminder + (re)arm the alarm to the earliest due one.
     if (url.pathname === "/remind" && request.method === "POST") {
       const rem = (await request.json()) as Reminder;

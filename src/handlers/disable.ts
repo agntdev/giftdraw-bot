@@ -1,15 +1,27 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { saveChatConfig } from "../gift-store.js";
+import { configOrReply, requireChatAdmin } from "../gift-admin.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-
-const composer = new Composer();
+const composer = new Composer<Ctx>();
 
 composer.command("disable", async (ctx) => {
-  await ctx.reply("Disable gift draws in this chat");
+  if (!(await requireChatAdmin(ctx))) return;
+  const config = await configOrReply(ctx);
+  if (!config) return;
+  config.enabled = false;
+  await saveChatConfig(ctx, config);
+  await ctx.reply("Gift draws are paused. Turn them back on whenever you’re ready.");
+});
+
+composer.callbackQuery("gift:disable", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  if (!(await requireChatAdmin(ctx))) return;
+  const config = await configOrReply(ctx);
+  if (!config) return;
+  config.enabled = false;
+  await saveChatConfig(ctx, config);
+  await ctx.editMessageText("Gift draws are paused. Turn them back on whenever you’re ready.");
 });
 
 export default composer;

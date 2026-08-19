@@ -1,15 +1,27 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { saveChatConfig } from "../gift-store.js";
+import { configOrReply, requireChatAdmin } from "../gift-admin.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-
-const composer = new Composer();
+const composer = new Composer<Ctx>();
 
 composer.command("chance", async (ctx) => {
-  await ctx.reply("Set selection probability percentage");
+  if (!(await requireChatAdmin(ctx))) return;
+  const raw = ctx.match.trim();
+  if (!/^\d{1,3}(?:\.\d+)?$/.test(raw)) {
+    await ctx.reply("Send a chance from 0 to 100. For example: /chance 5");
+    return;
+  }
+  const chance = Number(raw);
+  if (!Number.isFinite(chance) || chance < 0 || chance > 100) {
+    await ctx.reply("Send a chance from 0 to 100. For example: /chance 5");
+    return;
+  }
+  const config = await configOrReply(ctx);
+  if (!config) return;
+  config.selection_chance = chance;
+  await saveChatConfig(ctx, config);
+  await ctx.reply(`The gift-draw chance is now ${chance}%.`);
 });
 
 export default composer;
