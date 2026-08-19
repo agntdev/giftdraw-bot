@@ -1,0 +1,17 @@
+[
+  {
+    "name": "gift-draw menu stays admin-only outside a group",
+    "steps": [
+      {
+        "send": { "callback": "gift:menu" },
+        "expect": [
+          { "method": "answerCallbackQuery" },
+          {
+            "method": "sendMessage",
+            "payload": { "text": "Add me to a group, then an admin can set up gift draws there." }
+          }
+        ]
+      }
+    ]
+  }
+]

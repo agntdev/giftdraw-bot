@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Show last winner information"
+              "text": "Add me to a group, then an admin can set up gift draws there."
             }
           }
         ],
