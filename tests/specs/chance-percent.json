@@ -1,0 +1,20 @@
+[
+  {
+    "name": "/chance",
+    "steps": [
+      {
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Set selection probability percentage"
+            }
+          }
+        ],
+        "send": {
+          "text": "/chance"
+        }
+      }
+    ]
+  }
+]
