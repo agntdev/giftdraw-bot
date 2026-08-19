@@ -1,0 +1,23 @@
+[
+  {
+    "name": "message monitoring ignores the bot itself",
+    "strict": true,
+    "steps": [
+      {
+        "send": {
+          "update": {
+            "update_id": 1,
+            "message": {
+              "message_id": 1,
+              "date": 0,
+              "chat": { "id": -1001, "type": "supergroup", "title": "Gift group" },
+              "from": { "id": 42, "is_bot": true, "first_name": "TestBot", "username": "test_bot" },
+              "text": "I should never enter the draw"
+            }
+          }
+        },
+        "expect": []
+      }
+    ]
+  }
+]

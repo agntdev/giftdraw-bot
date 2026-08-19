@@ -11,8 +11,8 @@ async function showLastDraw(ctx: Ctx): Promise<void> {
     await ctx.reply("No gift draw yet — enable draws and I’ll announce the first winner here.");
     return;
   }
-  const winner = config.members.find((member) => member.id === config.last_winner_id);
-  await ctx.reply(winner ? `The latest winner was ${winner.username ? `@${winner.username}` : winner.name}.` : "I found the latest draw, but the winner is no longer in this chat.");
+  const winner = config.last_winner;
+  await ctx.reply(winner ? `The latest winner was ${winner.username ? `@${winner.username}` : winner.name}.` : "The latest draw is saved, but I can’t show that winner’s name right now.");
 }
 
 composer.command("lastdraw", async (ctx) => {

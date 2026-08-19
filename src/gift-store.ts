@@ -17,14 +17,14 @@ export interface ChatConfig {
   selection_chance: number;
   last_draw_timestamp?: number;
   last_winner_id?: number;
-  members: GiftMember[];
+  /** Details for the latest draw only; the active-author pool is in memory. */
+  last_winner?: GiftMember;
   draws: DrawEvent[];
 }
 
 const DEFAULT_CONFIG: ChatConfig = {
   enabled: false,
   selection_chance: 5,
-  members: [],
   draws: [],
 };
 
@@ -40,7 +40,7 @@ function chatId(ctx: Ctx): number | undefined {
 }
 
 function freshDefault(): ChatConfig {
-  return { ...DEFAULT_CONFIG, members: [], draws: [] };
+  return { ...DEFAULT_CONFIG, draws: [] };
 }
 
 function normalize(value: unknown): ChatConfig {
@@ -53,6 +53,19 @@ function normalize(value: unknown): ChatConfig {
   }
   if (!value || typeof value !== "object") return freshDefault();
   const raw = value as Partial<ChatConfig>;
+  // One-time compatibility migration: older records kept all authors in
+  // `members`. Retain only the latest winner's display details, then let the
+  // next save remove that former durable candidate pool.
+  const legacyWinner = Array.isArray((raw as { members?: unknown }).members)
+    ? (raw as { members: unknown[] }).members.find(
+      (member) => validMember(member) && member.id === raw.last_winner_id,
+    )
+    : undefined;
+  const lastWinner = validMember(raw.last_winner)
+    ? raw.last_winner
+    : validMember(legacyWinner)
+      ? legacyWinner
+      : undefined;
   return {
     enabled: raw.enabled === true,
     selection_chance:
@@ -61,7 +74,7 @@ function normalize(value: unknown): ChatConfig {
         : 5,
     ...(typeof raw.last_draw_timestamp === "number" ? { last_draw_timestamp: raw.last_draw_timestamp } : {}),
     ...(typeof raw.last_winner_id === "number" ? { last_winner_id: raw.last_winner_id } : {}),
-    members: Array.isArray(raw.members) ? raw.members.filter(validMember) : [],
+    ...(lastWinner ? { last_winner: lastWinner } : {}),
     draws: Array.isArray(raw.draws) ? raw.draws.filter(validDraw) : [],
   };
 }
@@ -103,12 +116,6 @@ export async function getChatConfig(ctx: Ctx): Promise<ChatConfig | undefined> {
 
 export async function saveChatConfig(ctx: Ctx, config: ChatConfig): Promise<void> {
   await access(ctx, "PUT", normalize(config));
-}
-
-export function rememberMember(config: ChatConfig, member: GiftMember): void {
-  const at = config.members.findIndex((existing) => existing.id === member.id);
-  if (at >= 0) config.members[at] = member;
-  else config.members.push(member);
 }
 
 let clock: () => number = () => Date.now();

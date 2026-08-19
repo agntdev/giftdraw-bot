@@ -4,7 +4,10 @@
 
 **Voice:** friendly and encouraging — write every user-facing message, button label, error, and empty state in this voice.
 
-Passively selects random chat members for gifts with 5% probability on user messages. Admins control behavior via commands. Winners are announced with plain text mentions in the same chat.
+Passively evaluates every non-bot user message for a gift draw (5% by default). A
+bounded in-memory LRU of recent active human authors supplies the winner pool, so
+the same person may win any number of times. Admins control behavior via commands.
+Winners are announced immediately in the same chat.
 
 > This is the complete contract for the bot. Implement EVERY entry point, flow, feature, integration, and edge case below. The completeness review checks the bot against this document after each build pass.
 
